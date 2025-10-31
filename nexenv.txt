@@ -1,0 +1,8 @@
+Create MasterAdminPanel/backend/.env with:
+PORT=4000
+MONGO_URI=<your Atlas connection string>
+JWT_SECRET=<long-random-secret>
+CORS_ORIGIN=http://localhost:5173
+SUPERADMIN_USER=<superadmin-username>
+SUPERADMIN_PASS=<superadmin-password>
+In MasterAdminPanel/backend: npm i then npm run dev
