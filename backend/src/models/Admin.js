@@ -7,7 +7,13 @@ const AdminSchema = new Schema(
     passwordHash: { type: String, required: true },
     dbName: { type: String, required: true, unique: true },
     email: { type: String },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    company: {
+      name: { type: String },
+      logo: { type: String },
+      details: { type: String }
+    },
+    selectedFields: [{ type: String }]
   },
   { timestamps: true }
 );

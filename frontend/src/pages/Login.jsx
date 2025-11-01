@@ -5,7 +5,7 @@ import api from '../api/axios.js';
 import { Button } from '../components/ui/Button.jsx';
 import { Input } from '../components/ui/Input.jsx';
 
-export default function AdminLogin() {
+export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,14 +17,42 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    
     try {
-      const { data } = await api.post('/admin/login', { username, password });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', 'admin');
-      localStorage.setItem('dbName', data.dbName);
-      navigate('/admin');
+      // Try SuperAdmin login first
+      try {
+        const { data } = await api.post('/superadmin/login', { username, password });
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', 'superadmin');
+        navigate('/superadmin');
+        return;
+      } catch (superAdminError) {
+        // If SuperAdmin login fails with 401, try Admin login
+        if (superAdminError?.response?.status === 401 || superAdminError?.response?.status === 500) {
+          try {
+        const { data } = await api.post('/admin/login', { username, password });
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', 'admin');
+        localStorage.setItem('dbName', data.dbName);
+        localStorage.setItem('selectedFields', JSON.stringify(data.selectedFields || []));
+        localStorage.setItem('company', JSON.stringify(data.company || {}));
+        navigate('/admin');
+            return;
+          } catch (adminError) {
+            // Both logins failed
+            const errorMessage = adminError?.response?.data?.message || superAdminError?.response?.data?.message || 'Invalid credentials. Please try again.';
+            setError(errorMessage);
+          }
+        } else {
+          // SuperAdmin login failed with non-auth error
+          const errorMessage = superAdminError?.response?.data?.message || superAdminError?.response?.data?.error || 'Login failed. Please try again.';
+          setError(errorMessage);
+        }
+      }
     } catch (err) {
-      setError(err?.response?.data?.message || 'Login failed');
+      // Unexpected error
+      const errorMessage = err?.response?.data?.message || err?.response?.data?.error || 'An error occurred. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,7 +93,7 @@ export default function AdminLogin() {
               </label>
               <Input
                 type="text"
-                placeholder="Enter the username"
+                placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -80,11 +108,10 @@ export default function AdminLogin() {
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Min. 8 characters"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={8}
                   className="w-full pr-10"
                 />
                 <button
@@ -122,3 +149,4 @@ export default function AdminLogin() {
     </div>
   );
 }
+

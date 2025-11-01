@@ -1,28 +1,45 @@
-import { Routes, Route, Navigate, Link } from 'react-router-dom';
-import SuperAdminLogin from './pages/SuperAdminLogin.jsx';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login.jsx';
 import SuperAdminDashboard from './pages/SuperAdminDashboard.jsx';
-import AdminLogin from './pages/AdminLogin.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 
 function Guard({ children, role }) {
   const token = localStorage.getItem('token');
   const roleStored = localStorage.getItem('role');
-  if (!token || roleStored !== role) return <Navigate to={role === 'superadmin' ? '/superadmin/login' : '/admin/login'} />;
+  if (!token || roleStored !== role) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+function PublicRoute({ children }) {
+  const token = localStorage.getItem('token');
+  const roleStored = localStorage.getItem('role');
+  
+  if (token && roleStored === 'superadmin') {
+    return <Navigate to="/superadmin" replace />;
+  }
+  if (token && roleStored === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
   return children;
 }
 
 export default function App() {
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', padding: 16 }}>
-      <nav style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-        <Link to="/superadmin/login">SuperAdmin Login</Link>
-        <Link to="/superadmin">SuperAdmin Dashboard</Link>
-        <Link to="/admin/login">Admin Login</Link>
-        <Link to="/admin">Admin Dashboard</Link>
-      </nav>
+    <div className="min-h-screen bg-gray-50">
       <Routes>
-        <Route path="/" element={<Navigate to="/superadmin/login" />} />
-        <Route path="/superadmin/login" element={<SuperAdminLogin />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        
         <Route
           path="/superadmin"
           element={
@@ -31,7 +48,7 @@ export default function App() {
             </Guard>
           }
         />
-        <Route path="/admin/login" element={<AdminLogin />} />
+        
         <Route
           path="/admin"
           element={
@@ -44,4 +61,3 @@ export default function App() {
     </div>
   );
 }
-

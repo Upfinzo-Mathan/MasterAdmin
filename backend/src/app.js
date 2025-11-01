@@ -18,6 +18,8 @@ app.use('/api/admin', adminRoutes);
 app.use((err, _req, res, _next) => {
   // eslint-disable-next-line no-console
   console.error(err);
+  console.log("Hello From APP JS ");
+  
   res.status(500).json({ message: 'Internal Server Error' });
 });
 
